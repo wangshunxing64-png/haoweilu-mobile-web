@@ -34,3 +34,14 @@ test("production deployment files target Node 20 without tracked secrets", async
   assert.match(gitignore, /^\.env\.\*$/m);
   assert.match(gitignore, /^!\.env\.example$/m);
 });
+
+test("production dependencies include the TypeScript seed runner", async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL("../../package.json", import.meta.url), "utf8"),
+  ) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+
+  assert.equal(packageJson.dependencies?.tsx, "4.20.5");
+  assert.equal(packageJson.dependencies?.prisma, "7.9.1");
+  assert.equal(packageJson.devDependencies?.tsx, undefined);
+  assert.equal(packageJson.devDependencies?.prisma, undefined);
+});
