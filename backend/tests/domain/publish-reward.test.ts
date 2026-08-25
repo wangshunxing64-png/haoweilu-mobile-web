@@ -82,6 +82,22 @@ test("reward claim is idempotent per session", async () => {
   assert.equal(second.code, first.code);
 });
 
+test("Meituan publish preparation opens the configured store share link", async () => {
+  const { reviews, publish } = makeServices();
+  const generated = await reviews.generate({
+    merchantId: "liji",
+    provider: "local-template",
+    model: "",
+    input: { dishes: ["bone-soup"], tags: ["broth"], message: "" },
+  });
+  await reviews.select(generated.reviews[0].id);
+
+  const prepared = await publish.prepare({ sessionId: generated.sessionId, platformId: "meituan" });
+
+  assert.equal(prepared.url, "https://dpurl.cn/swRRFoqz");
+  assert.equal(prepared.scheme, "https://dpurl.cn/swRRFoqz");
+});
+
 test("reward cannot be claimed before user-confirmed publish completion", async () => {
   const { reviews, rewards } = makeServices();
   const generated = await reviews.generate({

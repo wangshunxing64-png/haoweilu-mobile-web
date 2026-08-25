@@ -61,7 +61,7 @@ export class PublishService {
       status: "PUBLISH_PREPARED",
     });
 
-    const scheme = platform.id === "meituan" ? "imeituan://" : platform.id === "dianping" ? "dianping://" : "";
+    const scheme = platform.id === "meituan" ? platform.url : platform.id === "dianping" ? "dianping://" : "";
     return {
       publishId: publish.id,
       platformName: platform.name,

@@ -161,7 +161,7 @@ export const lijiMerchantSeed: MerchantConfig = {
     {
       id: "meituan",
       name: "美团",
-      url: "https://www.meituan.com/",
+      url: "https://dpurl.cn/swRRFoqz",
       actionHint: "评价已复制，请打开美团粘贴发布。",
       miniProgram: { appId: "", path: "" },
     },
