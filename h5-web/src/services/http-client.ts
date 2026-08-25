@@ -6,10 +6,14 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   catch { throw new ApiError("网络连接失败，请检查网络后重试", 0, "NETWORK_ERROR"); }
   const raw = await response.text();
   let body: unknown = {};
-  try { body = raw ? JSON.parse(raw) : {}; } catch { body = {}; }
+  let parsed = !raw;
+  try { body = raw ? JSON.parse(raw) : {}; parsed = true; } catch { body = {}; }
   if (!response.ok) {
     const error = (body as { error?: { message?: string; code?: string }; message?: string });
     throw new ApiError(error.error?.message ?? error.message ?? `请求失败（${response.status}）`, response.status, error.error?.code);
+  }
+  if (!parsed) {
+    throw new ApiError("后端 API 尚未连接，请配置 VITE_API_BASE_URL 后重新部署", 502, "INVALID_API_RESPONSE");
   }
   return body as T;
 }
