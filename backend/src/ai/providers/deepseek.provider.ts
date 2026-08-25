@@ -43,7 +43,7 @@ export class DeepSeekProvider implements ReviewProvider {
   constructor(options: DeepSeekProviderOptions) {
     this.apiKey = options.apiKey;
     this.baseUrl = (options.baseUrl ?? "https://api.deepseek.com").replace(/\/+$/, "");
-    this.model = options.model ?? "deepseek-chat";
+    this.model = options.model ?? "deepseek-v4-flash";
     this.timeoutMs = options.timeoutMs ?? 12_000;
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
@@ -91,6 +91,7 @@ export class DeepSeekProvider implements ReviewProvider {
           { role: "user", content: JSON.stringify(userPayload) },
         ],
         response_format: { type: "json_object" },
+        thinking: { type: "disabled" },
         temperature: 0.8,
         max_tokens: 1200,
       }),

@@ -120,14 +120,14 @@ test("ReviewService uses the merchant-configured AI provider instead of trusting
   const service = new ReviewService(store, generator);
 
   const result = await service.generate({
-    provider: "deepseek",
-    model: "deepseek-v4-pro",
+    provider: "local-template",
+    model: "client-supplied-model-is-ignored",
     merchantId: "liji",
     input: { dishes: ["bone-soup"], tags: ["broth"], message: "汤底很香" },
   });
 
-  assert.equal(remoteCalls, 0);
-  assert.ok(result.reviews.every((review) => review.provider === "local-template"));
+  assert.equal(remoteCalls, 1);
+  assert.ok(result.reviews.every((review) => review.provider === "deepseek"));
 });
 
 test("SessionService stores the canonical store id returned by merchant resolution", async () => {

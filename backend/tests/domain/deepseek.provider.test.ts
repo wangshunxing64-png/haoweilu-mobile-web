@@ -45,7 +45,8 @@ test("DeepSeekProvider calls the official chat-completions endpoint and parses s
   assert.equal(receivedUrl, "https://api.deepseek.com/chat/completions");
   assert.equal((receivedInit?.headers as Record<string, string>).Authorization, "Bearer test-secret");
   const requestBody = JSON.parse(String(receivedInit?.body));
-  assert.equal(requestBody.model, "deepseek-chat");
+  assert.equal(requestBody.model, "deepseek-v4-flash");
+  assert.deepEqual(requestBody.thinking, { type: "disabled" });
   assert.deepEqual(requestBody.response_format, { type: "json_object" });
   assert.ok(JSON.stringify(requestBody.messages).includes("朋友推荐来的，汤底很香。"));
   assert.equal(reviews.length, 3);
