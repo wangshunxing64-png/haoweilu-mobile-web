@@ -1,6 +1,24 @@
 export class ApiError extends Error { constructor(message: string, public readonly status: number, public readonly code = "API_ERROR") { super(message); } }
+
+const PRODUCTION_API_BASE_URL = "https://haoweilu-api.onrender.com";
+
+export function resolveApiBaseUrl(rawValue: string | undefined, isProduction: boolean): string {
+  const candidate = (rawValue || "").trim().replace(/\/$/, "");
+  if (!candidate) return isProduction ? PRODUCTION_API_BASE_URL : "";
+
+  try {
+    const url = new URL(candidate);
+    const isOriginOnly = url.protocol.startsWith("http") && (url.pathname === "" || url.pathname === "/");
+    if (isOriginOnly && !url.search && !url.hash) return url.origin;
+  } catch {
+    // Invalid dashboard values must not become request URLs.
+  }
+
+  return isProduction ? PRODUCTION_API_BASE_URL : "";
+}
+
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const base = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+  const base = resolveApiBaseUrl(import.meta.env.VITE_API_BASE_URL, import.meta.env.PROD);
   let response: Response;
   try { response = await fetch(`${base}${path}`, { ...init, headers: { "content-type": "application/json", ...init.headers } }); }
   catch { throw new ApiError("网络连接失败，请检查网络后重试", 0, "NETWORK_ERROR"); }

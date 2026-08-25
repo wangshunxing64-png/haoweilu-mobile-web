@@ -1,5 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { apiRequest } from "./http-client";
+import { apiRequest, resolveApiBaseUrl } from "./http-client";
+
+describe("resolveApiBaseUrl", () => {
+  it("falls back to the production API when a dashboard variable contains a Markdown health link", () => {
+    expect(resolveApiBaseUrl(
+      "[https://haoweilu-api.onrender.com/health](https://haoweilu-api.onrender.com/health)",
+      true,
+    )).toBe("https://haoweilu-api.onrender.com");
+  });
+});
 
 describe("apiRequest", () => {
   afterEach(() => vi.unstubAllGlobals());
