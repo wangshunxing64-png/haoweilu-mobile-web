@@ -1,0 +1,2 @@
+import { ChevronRight, MessageCircle, ShoppingBag } from "lucide-react";
+export function PlatformCard({ id, name, onClick, disabled }: { id: string; name: string; onClick(): void; disabled?: boolean }) { const Icon = id === "meituan" ? ShoppingBag : MessageCircle; return <button className={`platform-card ${id}`} onClick={onClick} disabled={disabled}><span className="platform-logo"><Icon /></span><span><b>{name}</b><small>评价将先复制，再尝试打开 App</small></span><ChevronRight /></button>; }

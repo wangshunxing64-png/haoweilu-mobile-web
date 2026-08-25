@@ -1,0 +1,4 @@
+import type { ExperienceTag } from "../types/api";
+import { ExperienceChip } from "../components/ExperienceChip";
+import { StepProgress } from "../components/StepProgress";
+export function ExperienceTagsScreen({ tags, selectedIds, onToggle, onNext }: { tags: ExperienceTag[]; selectedIds: string[]; onToggle(id: string): void; onNext(): void }) { return <section className="content-screen"><StepProgress current={2} /><div className="screen-heading"><p className="eyebrow">哪一点打动了你</p><h1>选择真实体验</h1><p>可以多选，不必面面俱到。</p></div><div className="chip-cloud">{tags.map((tag) => <ExperienceChip key={tag.id} name={tag.name} selected={selectedIds.includes(tag.id)} onToggle={() => onToggle(tag.id)} />)}</div><aside className="soft-tip">每一个标签都会成为 AI 整理评价时的重要线索。</aside><div className="sticky-action"><button className="primary-button" disabled={!selectedIds.length} onClick={onNext}>继续</button></div></section>; }

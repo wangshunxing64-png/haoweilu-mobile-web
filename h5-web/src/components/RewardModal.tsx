@@ -1,0 +1,3 @@
+import { Gift, X } from "lucide-react";
+import type { RewardRecord } from "../types/api";
+export function RewardModal({ reward, onClose }: { reward: RewardRecord; onClose(): void }) { return <div className="modal-backdrop"><section className="modal-card reward-modal" role="dialog" aria-modal="true" aria-labelledby="reward-title"><button className="modal-close" onClick={onClose} aria-label="关闭"><X /></button><span className="reward-icon"><Gift /></span><p className="eyebrow">门店感谢礼</p><h2 id="reward-title">感谢你的真实反馈</h2><p>请向门店工作人员出示以下权益码</p><strong className="reward-code">{reward.code}</strong><small>状态：{reward.status}</small><button className="primary-button" onClick={onClose}>完成</button></section></div>; }

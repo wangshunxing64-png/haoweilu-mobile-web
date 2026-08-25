@@ -1,0 +1,2 @@
+import { ArrowLeft } from "lucide-react";
+export function MobileWebHeader({ title, onBack }: { title?: string; onBack?: () => void }) { return <header className="topbar"><button className="icon-button" aria-label="返回" onClick={onBack} disabled={!onBack}><ArrowLeft size={21} /></button><div className="brand-lockup"><span className="brand-seal">味</span><span>{title || "好味录"}</span></div><span className="topbar-space" /></header>; }

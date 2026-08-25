@@ -1,0 +1,6 @@
+import type { Platform } from "../types/api";
+import { Copy, CheckCircle2 } from "lucide-react";
+import { StepProgress } from "../components/StepProgress";
+import { PlatformCard } from "../components/PlatformCard";
+import { AppLaunchFallback } from "../components/AppLaunchFallback";
+export function PlatformSelectionScreen({ platforms, copied, hint, loading, onCopy, onLaunch, onComplete }: { platforms: Platform[]; copied: boolean; hint: string; loading: boolean; onCopy(): void; onLaunch(id: string): void; onComplete(): void }) { return <section className="content-screen"><StepProgress current={5} /><div className="screen-heading"><p className="eyebrow">评价已准备完成</p><h1>复制后，自主选择平台发布</h1><p>平台中的发布操作由你自行完成，返回这里后再确认。</p></div><div className="prepared-card"><CheckCircle2 /><div><b>你的评价已就绪</b><small>可先复制，再打开美团或大众点评</small></div></div><button className="outline-button" onClick={onCopy}><Copy size={18} />{copied ? "已复制评价" : "复制评价"}</button><div className="platform-list">{platforms.map((p) => <PlatformCard key={p.id} id={p.id} name={p.name} disabled={loading} onClick={() => onLaunch(p.id)} />)}</div>{hint && <AppLaunchFallback hint={hint} />}<div className="sticky-action"><button className="primary-button" disabled={loading} onClick={onComplete}>我已完成真实反馈</button></div></section>; }

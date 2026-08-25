@@ -1,0 +1,4 @@
+import type { Dish } from "../types/api";
+import { DishCard } from "../components/DishCard";
+import { StepProgress } from "../components/StepProgress";
+export function DishSelectionScreen({ dishes, selectedIds, onToggle, onNext }: { dishes: Dish[]; selectedIds: string[]; onToggle(id: string): void; onNext(): void }) { return <section className="content-screen"><StepProgress current={1} /><div className="screen-heading"><p className="eyebrow">今天吃了什么</p><h1>选择你品尝的菜品</h1><p>最多选择 6 道，方便为您定制您心里的真实评价。</p></div><div className="dish-list">{dishes.map((dish) => <DishCard key={dish.id} dish={dish} selected={selectedIds.includes(dish.id)} onToggle={() => onToggle(dish.id)} />)}</div><div className="sticky-action"><button className="primary-button" disabled={!selectedIds.length} onClick={onNext}>下一步 <span>{selectedIds.length}/6</span></button></div></section>; }

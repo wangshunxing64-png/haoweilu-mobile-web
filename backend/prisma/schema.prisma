@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ReviewSessionStatus {
+  CREATED
+  INTERVIEWING
+  GENERATING
+  GENERATED
+  SELECTED
+  PUBLISH_PREPARED
+  PUBLISH_CONFIRMED
+  REWARDED
+}
+
+enum RewardStatus {
+  CLAIMED
+  REDEEMED
+  EXPIRED
+}
+
+model Merchant {
+  id                String            @id
+  name              String
+  storageKey        String            @unique
+  theme             Json
+  copy              Json
+  rules             Json
+  aiProvider        String            @default("local-template")
+  aiModel           String?
+  aiFallbackToLocal Boolean           @default(true)
+  reviewStyles      Json
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  stores            Store[]
+  dishes            Dish[]
+  experienceTags    ExperienceTag[]
+  platforms         PublishPlatform[]
+  sessions          ReviewSession[]
+  analyticsEvents   AnalyticsEvent[]
+}
+
+model Store {
+  id              String            @id
+  externalId      String
+  merchantId      String
+  name            String
+  active          Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  merchant        Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  dishes          Dish[]
+  experienceTags  ExperienceTag[]
+  platforms       PublishPlatform[]
+  sessions        ReviewSession[]
+  analyticsEvents AnalyticsEvent[]
+
+  @@unique([merchantId, externalId])
+  @@index([merchantId, active])
+}
+
+model Dish {
+  id          String   @id @default(cuid())
+  externalId  String
+  merchantId  String
+  storeId     String?
+  name        String
+  description String   @default("")
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  merchant    Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  store       Store?   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, storeId, externalId])
+  @@index([merchantId, storeId, active, sortOrder])
+}
+
+model ExperienceTag {
+  id              String   @id @default(cuid())
+  externalId      String
+  merchantId      String
+  storeId         String?
+  groupExternalId String
+  groupName       String
+  name            String
+  groupSortOrder  Int      @default(0)
+  sortOrder       Int      @default(0)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  store           Store?   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, storeId, externalId])
+  @@index([merchantId, storeId, active, groupSortOrder, sortOrder])
+}
+
+model PublishPlatform {
+  id           String   @id @default(cuid())
+  externalId   String
+  merchantId   String
+  storeId      String?
+  name         String
+  url          String
+  actionHint   String
+  miniProgram  Json
+  sortOrder    Int      @default(0)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  merchant     Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  store        Store?   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, storeId, externalId])
+  @@index([merchantId, storeId, active, sortOrder])
+}
+
+model ReviewSession {
+  id                 String              @id @default(cuid())
+  merchantId         String
+  storeId            String?
+  anonymousId        String?
+  openId             String?
+  dishIds            Json
+  tagIds             Json
+  message            String              @default("") @db.VarChar(120)
+  selectedReviewId   String?
+  selectedPlatformId String?
+  status             ReviewSessionStatus @default(CREATED)
+  expiresAt          DateTime
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  merchant           Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  store              Store?              @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  reviews            Review[]
+  publishRecord      PublishRecord?
+  rewardRecord       RewardRecord?
+  analyticsEvents    AnalyticsEvent[]
+
+  @@index([merchantId, storeId, createdAt])
+  @@index([expiresAt])
+}
+
+model Review {
+  id         String        @id @default(cuid())
+  sessionId  String
+  styleId    String
+  styleName  String
+  styleLabel String
+  content    String        @db.Text
+  provider   String
+  model      String?
+  selected   Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  session    ReviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model PublishRecord {
+  id                 String        @id @default(cuid())
+  sessionId          String        @unique
+  platformExternalId String
+  preparedAt         DateTime      @default(now())
+  openedAt           DateTime?
+  completedAt        DateTime?
+  userConfirmed      Boolean       @default(false)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  session            ReviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([platformExternalId, createdAt])
+}
+
+model RewardRecord {
+  id         String        @id @default(cuid())
+  sessionId  String        @unique
+  rewardType String
+  code       String        @unique
+  status     RewardStatus  @default(CLAIMED)
+  claimedAt  DateTime      @default(now())
+  redeemedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  session    ReviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model AnalyticsEvent {
+  id         String         @id @default(cuid())
+  merchantId String
+  storeId    String?
+  sessionId  String?
+  name       String
+  payload    Json
+  createdAt  DateTime       @default(now())
+  merchant   Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  store      Store?         @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  session    ReviewSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([merchantId, storeId, createdAt])
+  @@index([name, createdAt])
+}

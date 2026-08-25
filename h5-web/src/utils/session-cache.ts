@@ -1,0 +1,5 @@
+interface Cache { version: 1; sessionId: string; screen: string; dishIds: string[]; tagIds: string[]; selectedReviewId: string; expiresAt: number }
+export function cacheKey(merchantId: string, storeId: string) { return `haoweilu:${merchantId}:${storeId}:session:v1`; }
+export function saveSessionCache(merchantId: string, storeId: string, value: Omit<Cache, "version" | "expiresAt">) { sessionStorage.setItem(cacheKey(merchantId, storeId), JSON.stringify({ ...value, version: 1, expiresAt: Date.now() + 2 * 60 * 60 * 1000 })); }
+export function readSessionCache(merchantId: string, storeId: string): Cache | undefined { const key = cacheKey(merchantId, storeId); try { const value = JSON.parse(sessionStorage.getItem(key) || "null") as Cache | null; if (!value || value.version !== 1 || value.expiresAt < Date.now()) { sessionStorage.removeItem(key); return; } return value; } catch { sessionStorage.removeItem(key); return; } }
+export function clearSessionCache(merchantId: string, storeId: string) { sessionStorage.removeItem(cacheKey(merchantId, storeId)); }

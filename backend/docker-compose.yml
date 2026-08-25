@@ -1,0 +1,91 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ai_review
+      POSTGRES_PASSWORD: ai_review
+      POSTGRES_DB: ai_review
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_review -d ai_review"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build: .
+    command: ["sh", "-c", "npm run db:migrate:deploy && npm run db:seed"]
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://ai_review:ai_review@postgres:5432/ai_review?schema=public
+      DEFAULT_AI_PROVIDER: ${DEFAULT_AI_PROVIDER:-local-template}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-v4-flash}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: .
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: 3000
+      TRUST_PROXY: "false"
+      PUBLIC_API_BASE_URL: http://localhost:3000
+      DATABASE_URL: postgresql://ai_review:ai_review@postgres:5432/ai_review?schema=public
+      DATABASE_POOL_MAX: 10
+      DATABASE_CONNECTION_TIMEOUT_MS: 5000
+      DATABASE_IDLE_TIMEOUT_MS: 30000
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+      LOG_LEVEL: info
+      DEFAULT_AI_PROVIDER: ${DEFAULT_AI_PROVIDER:-local-template}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-v4-flash}
+      DEEPSEEK_TIMEOUT_MS: 12000
+      GLOBAL_RATE_LIMIT_MAX: 300
+      AI_RATE_LIMIT_MAX: 20
+      SESSION_CLEANUP_INTERVAL_MS: 3600000
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-local-admin-key}
+      CONTENT_BLOCKLIST: ${CONTENT_BLOCKLIST:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  postgres_data:
+  redis_data:

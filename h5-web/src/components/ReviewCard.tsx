@@ -1,0 +1,4 @@
+import { Check, PenLine } from "lucide-react";
+import { motion } from "motion/react";
+import type { Review } from "../types/api";
+export function ReviewCard({ review, selected, index, onSelect, onEdit }: { review: Review; selected: boolean; index: number; onSelect(): void; onEdit(): void }) { return <motion.article className={`review-card ${selected ? "is-selected" : ""}`} initial={{ opacity: 0, y: 12, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: index * .08 }}><button className="review-select" onClick={onSelect} aria-pressed={selected}><span className="review-style">{review.styleLabel || review.styleName || `方案 ${index + 1}`}</span><p>{review.content}</p><span className="review-check">{selected ? <><Check size={16} />已选择</> : "选择这条"}</span></button><button className="edit-link" onClick={onEdit}><PenLine size={16} />编辑文字</button></motion.article>; }

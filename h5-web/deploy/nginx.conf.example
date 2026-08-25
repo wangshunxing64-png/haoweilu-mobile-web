@@ -1,0 +1,13 @@
+server { listen 80; server_name h5.example.cn; return 301 https://$host$request_uri; }
+server {
+  listen 443 ssl http2; server_name h5.example.cn; root /var/www/haoweilu; index index.html;
+  ssl_certificate /etc/nginx/ssl/fullchain.pem; ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+  add_header Strict-Transport-Security "max-age=31536000" always;
+  add_header X-Content-Type-Options nosniff always;
+  add_header Referrer-Policy strict-origin-when-cross-origin always;
+  add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://api.example.cn; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'" always;
+  gzip on; gzip_types text/css application/javascript application/json image/svg+xml;
+  location / { try_files $uri $uri/ /index.html; }
+  location ~* \.(?:js|css|svg|png|webp|woff2)$ { expires 1y; add_header Cache-Control "public, immutable"; }
+  location = /index.html { add_header Cache-Control "no-cache"; }
+}
