@@ -4,6 +4,7 @@
 !.env.example
 !.env.development.example
 !.env.production.example
+!h5-web/.env.production
 !.env.test.example
 node_modules/
 dist/
