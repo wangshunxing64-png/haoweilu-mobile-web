@@ -102,7 +102,7 @@ export const GeneratingLoadingScreen: React.FC<GeneratingLoadingScreenProps> = (
           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 border border-[#F2DDD3] text-[#932115] text-[11px] font-semibold shadow-2xs mb-1"
         >
           <Sparkles className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '4s' }} />
-          <span>AI 情感共鸣构思中</span>
+          <span>智能助手正在构思</span>
         </motion.div>
 
         <motion.h2
@@ -250,4 +250,3 @@ export const GeneratingLoadingScreen: React.FC<GeneratingLoadingScreenProps> = (
     </div>
   );
 };
-

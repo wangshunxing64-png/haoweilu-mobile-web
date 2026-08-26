@@ -341,7 +341,7 @@ export const MobileWebApp: React.FC<MobileWebAppProps> = ({
       const result = await reviewApi.generateReviews({ merchantId: config.merchant.id, storeId: config.store.id, sessionId: activeSessionId, input: { dishes: appState.selectedDishes, tags: appState.selectedTags, message: appState.message } });
       setReviews(result.reviews);
       trackEvent('review_generated', { reviewCount: result.reviews.length, dishCount: appState.selectedDishes.length, tagCount: appState.selectedTags.length, hasMessage: Boolean(appState.message.trim()) });
-      window.setTimeout(() => onChangeScreen('ai-reviews'), 2600);
+      onChangeScreen('ai-reviews');
     } catch (error) {
       setFlowError(error instanceof Error ? error.message : '评价生成失败，请重试');
       onChangeScreen('additional-message');
@@ -427,7 +427,9 @@ export const MobileWebApp: React.FC<MobileWebAppProps> = ({
 
             {activeScreen === 'generating-loading' && (
               <GeneratingLoadingScreen
-                selectedTags={appState.selectedTags}
+                selectedTags={appState.selectedTags
+                  .map((id) => config?.tags.find((tag) => tag.id === id)?.name)
+                  .filter((name): name is string => Boolean(name))}
                 autoTransition={false}
                 onComplete={() => undefined}
               />
