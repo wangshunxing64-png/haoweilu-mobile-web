@@ -10,6 +10,7 @@ import type { Redis } from "ioredis";
 import { DeepSeekProvider } from "./ai/providers/deepseek.provider.ts";
 import { LocalFallbackProvider } from "./ai/providers/local-fallback.provider.ts";
 import { QwenProvider } from "./ai/providers/qwen.provider.ts";
+import { ZhipuProvider } from "./ai/providers/zhipu.provider.ts";
 import { ReviewGenerator } from "./ai/review-generator.ts";
 import type { ReviewProvider } from "./ai/types.ts";
 import { registerErrorHandler } from "./common/http/error-handler.ts";
@@ -37,6 +38,10 @@ export interface HttpAppConfig {
   deepseekBaseUrl: string;
   deepseekModel: string;
   deepseekTimeoutMs: number;
+  zhipuApiKey: string;
+  zhipuBaseUrl: string;
+  zhipuModel: string;
+  zhipuTimeoutMs: number;
   contentBlocklist: string[];
 }
 
@@ -164,6 +169,12 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
         baseUrl: config.deepseekBaseUrl,
         model: config.deepseekModel,
         timeoutMs: config.deepseekTimeoutMs,
+      })],
+      ["zhipu", new ZhipuProvider({
+        apiKey: config.zhipuApiKey,
+        baseUrl: config.zhipuBaseUrl,
+        model: config.zhipuModel,
+        timeoutMs: config.zhipuTimeoutMs,
       })],
       ["qwen", new QwenProvider()],
     ]),

@@ -17,6 +17,19 @@ test("AI_PROVIDER is the production AI provider setting", () => {
   assert.equal(env.ENABLE_API_DOCS, false);
 });
 
+test("Zhipu is accepted as a production provider with safe official defaults", () => {
+  const env = loadEnv({
+    NODE_ENV: "production",
+    DATABASE_URL: "postgresql://user:password@db.example.com:5432/reviews",
+    AI_PROVIDER: "zhipu",
+    ZHIPU_API_KEY: "server-only-key",
+  });
+
+  assert.equal(env.AI_PROVIDER, "zhipu");
+  assert.equal(env.ZHIPU_BASE_URL, "https://open.bigmodel.cn/api/paas/v4");
+  assert.equal(env.ZHIPU_MODEL, "glm-4.7-flash");
+});
+
 test("production deployment files target Node 20 without tracked secrets", async () => {
   const [dockerfile, environment, gitignore] = await Promise.all([
     readFile(new URL("../../Dockerfile", import.meta.url), "utf8"),
@@ -28,8 +41,8 @@ test("production deployment files target Node 20 without tracked secrets", async
   assert.match(environment, /^NODE_ENV=production$/m);
   assert.match(environment, /^PORT=3000$/m);
   assert.match(environment, /^DATABASE_URL=$/m);
-  assert.match(environment, /^DEEPSEEK_API_KEY=$/m);
-  assert.match(environment, /^AI_PROVIDER=deepseek$/m);
+  assert.match(environment, /^ZHIPU_API_KEY=$/m);
+  assert.match(environment, /^AI_PROVIDER=zhipu$/m);
   assert.doesNotMatch(environment, /postgresql:\/\/ai_review:ai_review/);
   assert.match(gitignore, /^\.env\.\*$/m);
   assert.match(gitignore, /^!\.env\.example$/m);

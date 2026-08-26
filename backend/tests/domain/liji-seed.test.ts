@@ -4,8 +4,8 @@ import test from "node:test";
 import { lijiMerchantSeed } from "../../src/modules/merchants/liji.seed.ts";
 
 test("Li Ji backend seed preserves the current miniapp business configuration", () => {
-  assert.equal(lijiMerchantSeed.ai.provider, "deepseek");
-  assert.equal(lijiMerchantSeed.ai.model, "deepseek-v4-flash");
+  assert.equal(lijiMerchantSeed.ai.provider, "zhipu");
+  assert.equal(lijiMerchantSeed.ai.model, "glm-4.7-flash");
   assert.equal(lijiMerchantSeed.ai.fallbackToLocal, true);
   const dishCopy = lijiMerchantSeed.copy.dishes as { description: string };
   assert.equal(lijiMerchantSeed.id, "liji");

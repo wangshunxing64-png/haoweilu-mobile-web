@@ -18,9 +18,9 @@ export const lijiMerchantSeed: MerchantConfig = {
     border: "#E4BEB8",
   },
   ai: {
-    provider: "deepseek",
-    endpoint: "https://api.deepseek.com",
-    model: "deepseek-v4-flash",
+    provider: "zhipu",
+    endpoint: "https://open.bigmodel.cn/api/paas/v4",
+    model: "glm-4.7-flash",
     fallbackToLocal: true,
   },
   copy: {

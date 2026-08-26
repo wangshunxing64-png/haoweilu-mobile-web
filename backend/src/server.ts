@@ -35,6 +35,10 @@ const config: HttpAppConfig = {
   deepseekBaseUrl: env.DEEPSEEK_BASE_URL,
   deepseekModel: env.DEEPSEEK_MODEL,
   deepseekTimeoutMs: env.DEEPSEEK_TIMEOUT_MS,
+  zhipuApiKey: env.ZHIPU_API_KEY,
+  zhipuBaseUrl: env.ZHIPU_BASE_URL,
+  zhipuModel: env.ZHIPU_MODEL,
+  zhipuTimeoutMs: env.ZHIPU_TIMEOUT_MS,
   contentBlocklist: env.contentBlocklist,
 };
 

@@ -18,6 +18,10 @@ const config: HttpAppConfig = {
   deepseekBaseUrl: "https://api.deepseek.com",
   deepseekModel: "deepseek-v4-flash",
   deepseekTimeoutMs: 12000,
+  zhipuApiKey: "",
+  zhipuBaseUrl: "https://open.bigmodel.cn/api/paas/v4",
+  zhipuModel: "glm-4.7-flash",
+  zhipuTimeoutMs: 12000,
   contentBlocklist: [],
 };
 

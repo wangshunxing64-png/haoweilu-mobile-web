@@ -104,8 +104,8 @@ test("ReviewService uses the merchant-configured AI provider instead of trusting
   const store = new InMemoryStore([lijiMerchantSeed]);
   let remoteCalls = 0;
   const generator = new ReviewGenerator({
-    providers: new Map([["deepseek", {
-      name: "deepseek",
+    providers: new Map([["zhipu", {
+      name: "zhipu",
       async generate() {
         remoteCalls += 1;
         return [
@@ -127,7 +127,7 @@ test("ReviewService uses the merchant-configured AI provider instead of trusting
   });
 
   assert.equal(remoteCalls, 1);
-  assert.ok(result.reviews.every((review) => review.provider === "deepseek"));
+  assert.ok(result.reviews.every((review) => review.provider === "zhipu"));
 });
 
 test("SessionService stores the canonical store id returned by merchant resolution", async () => {
