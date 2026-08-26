@@ -101,6 +101,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     },
     methods: ["GET", "POST", "PATCH", "OPTIONS"],
     allowedHeaders: ["content-type", "x-request-id", "x-admin-key", "idempotency-key"],
+    maxAge: 86_400,
   });
 
   await app.register(rateLimit, {

@@ -19,8 +19,12 @@ export function resolveApiBaseUrl(rawValue: string | undefined, isProduction: bo
 
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const base = resolveApiBaseUrl(import.meta.env.VITE_API_BASE_URL, import.meta.env.PROD);
+  const headers = new Headers(init.headers);
+  if (init.body !== undefined && !headers.has("content-type")) {
+    headers.set("content-type", "application/json");
+  }
   let response: Response;
-  try { response = await fetch(`${base}${path}`, { ...init, headers: { "content-type": "application/json", ...init.headers } }); }
+  try { response = await fetch(`${base}${path}`, { ...init, headers }); }
   catch { throw new ApiError("网络连接失败，请检查网络后重试", 0, "NETWORK_ERROR"); }
   const raw = await response.text();
   let body: unknown = {};

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScreenType, TabType, AppState } from '../types';
 import { MobileWebHeader } from './MobileWebHeader';
 import { MobileWebTabBar } from './MobileWebTabBar';
@@ -19,7 +19,7 @@ import { parseEntryParams } from '../../utils/entry-params';
 import { launchPlatform } from '../../services/app-launcher';
 import { track } from '../../services/analytics-service';
 import { clearSessionCache, readSessionCache, saveSessionCache } from '../../utils/session-cache';
-import type { PublicConfig, Review, RewardRecord } from '../../types/api';
+import type { PublicConfig, Review, ReviewSession, RewardRecord } from '../../types/api';
 import type { ReviewOption } from '../types';
 
 interface MobileWebAppProps {
@@ -56,6 +56,28 @@ export const MobileWebApp: React.FC<MobileWebAppProps> = ({
   const [flowError, setFlowError] = useState('');
   const [busyAction, setBusyAction] = useState('');
   const [launchHint, setLaunchHint] = useState('');
+  const sessionCreationRef = useRef<Promise<ReviewSession> | undefined>(undefined);
+
+  const prepareSession = (nextConfig: PublicConfig, scene?: string): Promise<ReviewSession> => {
+    const existing = sessionCreationRef.current;
+    if (existing) return existing;
+
+    const creation = reviewApi.createSession({
+      merchantId: nextConfig.merchant.id,
+      storeId: nextConfig.store.id,
+    }).then((session) => {
+      setSessionId(session.id);
+      track({ merchantId: nextConfig.merchant.id, storeId: nextConfig.store.id, sessionId: session.id }, 'scan_open', { scene });
+      return session;
+    });
+    sessionCreationRef.current = creation;
+    void creation.catch(() => {
+      if (sessionCreationRef.current === creation) {
+        sessionCreationRef.current = undefined;
+      }
+    });
+    return creation;
+  };
 
   useEffect(() => {
     const entry = parseEntryParams(window.location.search);
@@ -71,15 +93,14 @@ export const MobileWebApp: React.FC<MobileWebAppProps> = ({
             : 'additional-message';
           setConfig(nextConfig);
           setSessionId(cached.sessionId);
+          sessionCreationRef.current = Promise.resolve({ id: cached.sessionId } as ReviewSession);
           setAppState((prev) => ({ ...prev, activeTab: restorable === 'home' ? 'home' : 'assistant', selectedDishes: cached.dishIds, selectedTags: cached.tagIds, selectedReviewId: cached.selectedReviewId }));
           onChangeScreen(restorable);
           track({ merchantId: nextConfig.merchant.id, storeId: nextConfig.store.id, sessionId: cached.sessionId }, 'session_restored', { scene: entry.scene });
           return;
         }
-        const session = await reviewApi.createSession({ merchantId: nextConfig.merchant.id, storeId: nextConfig.store.id });
         setConfig(nextConfig);
-        setSessionId(session.id);
-        track({ merchantId: nextConfig.merchant.id, storeId: nextConfig.store.id, sessionId: session.id }, 'scan_open', { scene: entry.scene });
+        void prepareSession(nextConfig, entry.scene);
       })
       .catch((error) => setFlowError(error instanceof Error ? error.message : '门店信息加载失败'));
   }, []);
@@ -310,13 +331,14 @@ export const MobileWebApp: React.FC<MobileWebAppProps> = ({
   }
 
   const handleGenerate = async () => {
-    if (!config || !sessionId || isGenerating) return;
+    if (!config || isGenerating) return;
     setIsGenerating(true);
     setFlowError('');
     onChangeScreen('generating-loading');
     try {
-      await reviewApi.updateSession(sessionId, { dishIds: appState.selectedDishes, tagIds: appState.selectedTags, message: appState.message });
-      const result = await reviewApi.generateReviews({ merchantId: config.merchant.id, storeId: config.store.id, sessionId, input: { dishes: appState.selectedDishes, tags: appState.selectedTags, message: appState.message } });
+      const activeSessionId = sessionId || (await prepareSession(config)).id;
+      await reviewApi.updateSession(activeSessionId, { dishIds: appState.selectedDishes, tagIds: appState.selectedTags, message: appState.message });
+      const result = await reviewApi.generateReviews({ merchantId: config.merchant.id, storeId: config.store.id, sessionId: activeSessionId, input: { dishes: appState.selectedDishes, tags: appState.selectedTags, message: appState.message } });
       setReviews(result.reviews);
       trackEvent('review_generated', { reviewCount: result.reviews.length, dishCount: appState.selectedDishes.length, tagCount: appState.selectedTags.length, hasMessage: Boolean(appState.message.trim()) });
       window.setTimeout(() => onChangeScreen('ai-reviews'), 2600);
