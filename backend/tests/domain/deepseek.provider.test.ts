@@ -53,13 +53,18 @@ test("DeepSeekProvider calls the official chat-completions endpoint and parses s
   assert.deepEqual(reviews.map((review) => review.styleId), ["daily", "friend", "local"]);
 });
 
-test("DeepSeekProvider rejects non-success upstream responses", async () => {
+test("DeepSeekProvider keeps its existing two rate-limit retries", async () => {
+  let calls = 0;
   const provider = new DeepSeekProvider({
     apiKey: "test-secret",
-    fetchImpl: async () => new Response("rate limited", { status: 429 }),
+    fetchImpl: async () => {
+      calls += 1;
+      return new Response("rate limited", { status: 429, headers: { "retry-after": "0" } });
+    },
   });
 
   await assert.rejects(() => provider.generate(context), /DeepSeek request failed: 429/);
+  assert.equal(calls, 3);
 });
 
 test("DeepSeekProvider rejects malformed JSON content so orchestration can fall back", async () => {

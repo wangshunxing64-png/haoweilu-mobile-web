@@ -72,7 +72,7 @@ test("ZhipuProvider retries a rate-limited request before returning reviews", as
   assert.ok(reviews.every((review) => review.provider === "zhipu"));
 });
 
-test("ZhipuProvider stops after two rate-limit retries so local fallback can take over", async () => {
+test("ZhipuProvider stops after two rate-limited attempts so DeepSeek can take over", async () => {
   let calls = 0;
   const provider = new ZhipuProvider({
     apiKey: "test-secret",
@@ -83,5 +83,5 @@ test("ZhipuProvider stops after two rate-limit retries so local fallback can tak
   });
 
   await assert.rejects(() => provider.generate(context), /Zhipu request failed: 429/);
-  assert.equal(calls, 3);
+  assert.equal(calls, 2);
 });

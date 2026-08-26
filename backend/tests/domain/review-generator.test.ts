@@ -59,6 +59,75 @@ test("ReviewGenerator falls back locally when the remote provider throws", async
   assert.ok(result.every((item) => item.content.includes("汤底很香")));
 });
 
+test("ReviewGenerator fails over from Zhipu to DeepSeek after any Zhipu request error", async () => {
+  for (const zhipuError of [
+    Object.assign(new Error("Zhipu request failed: 429"), { status: 429 }),
+    new Error("The operation was aborted due to timeout"),
+    Object.assign(new Error("Zhipu request failed: 500"), { status: 500 }),
+  ]) {
+    const zhipu: ReviewProvider = {
+      name: "zhipu",
+      async generate() {
+        throw zhipuError;
+      },
+    };
+    const deepseek: ReviewProvider = {
+      name: "deepseek",
+      async generate() {
+        return [
+          { id: "a", styleId: "daily", styleName: "", styleLabel: "", content: "DeepSeek日常评价".repeat(20) },
+          { id: "b", styleId: "friend", styleName: "", styleLabel: "", content: "DeepSeek朋友评价".repeat(20) },
+          { id: "c", styleId: "local", styleName: "", styleLabel: "", content: "DeepSeek本地评价".repeat(20) },
+        ];
+      },
+    };
+    const failures: string[] = [];
+    const generator = new ReviewGenerator({
+      providers: new Map([[zhipu.name, zhipu], [deepseek.name, deepseek]]),
+      fallback: new LocalFallbackProvider(),
+      failoverProviders: new Map([["zhipu", "deepseek"]]),
+      onProviderFailure: ({ provider }) => failures.push(provider),
+    });
+
+    const result = await generator.generate(context, "zhipu");
+
+    assert.equal(result.length, 3);
+    assert.ok(result.every((item) => item.provider === "deepseek"));
+    assert.deepEqual(failures, ["zhipu"]);
+  }
+});
+
+test("ReviewGenerator uses local fallback when DeepSeek failover is also unusable", async () => {
+  const zhipu: ReviewProvider = {
+    name: "zhipu",
+    async generate() {
+      throw new Error("Zhipu request failed: 500");
+    },
+  };
+  const deepseek: ReviewProvider = {
+    name: "deepseek",
+    async generate() {
+      return ["甲", "乙", "丙"].map((marker, index) => ({
+        id: marker,
+        styleId: ["daily", "friend", "local"][index],
+        styleName: "",
+        styleLabel: "",
+        content: marker.repeat(149),
+      }));
+    },
+  };
+  const generator = new ReviewGenerator({
+    providers: new Map([[zhipu.name, zhipu], [deepseek.name, deepseek]]),
+    fallback: new LocalFallbackProvider(),
+    failoverProviders: new Map([["zhipu", "deepseek"]]),
+  });
+
+  const result = await generator.generate(context, "zhipu");
+
+  assert.equal(result.length, 3);
+  assert.ok(result.every((item) => item.provider === "local-template"));
+});
+
 test("ReviewGenerator falls back when a provider returns fewer than three or duplicate reviews", async () => {
   const remote: ReviewProvider = {
     name: "deepseek",

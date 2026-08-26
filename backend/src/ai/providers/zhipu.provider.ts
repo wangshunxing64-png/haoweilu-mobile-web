@@ -7,6 +7,6 @@ export class ZhipuProvider extends OpenAiCompatibleReviewProvider {
     super({ name: "zhipu", errorLabel: "Zhipu", apiKey: options.apiKey,
       baseUrl: options.baseUrl ?? "https://open.bigmodel.cn/api/paas/v4",
       model: options.model ?? "glm-4.7-flash", timeoutMs: options.timeoutMs, fetchImpl: options.fetchImpl,
-      extraBody: { thinking: { type: "disabled" } } });
+      extraBody: { thinking: { type: "disabled" } }, maxRateLimitRetries: 1 });
   }
 }

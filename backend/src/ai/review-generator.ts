@@ -13,6 +13,7 @@ interface ProviderFailureEvent {
 interface ReviewGeneratorOptions {
   providers: Map<string, ReviewProvider>;
   fallback: ReviewProvider;
+  failoverProviders?: Map<string, string>;
   onProviderFailure?: (event: ProviderFailureEvent) => void;
 }
 
@@ -46,11 +47,13 @@ function normalizeReviews(
 export class ReviewGenerator {
   private readonly providers: Map<string, ReviewProvider>;
   private readonly fallback: ReviewProvider;
+  private readonly failoverProviders: Map<string, string>;
   private readonly onProviderFailure?: (event: ProviderFailureEvent) => void;
 
   constructor(options: ReviewGeneratorOptions) {
     this.providers = options.providers;
     this.fallback = options.fallback;
+    this.failoverProviders = options.failoverProviders ?? new Map();
     this.onProviderFailure = options.onProviderFailure;
   }
 
@@ -75,6 +78,26 @@ export class ReviewGenerator {
       return reviews;
     } catch (error) {
       this.onProviderFailure?.({ provider: provider.name, error });
+      const failoverName = this.failoverProviders.get(provider.name);
+      const failover = failoverName && failoverName !== provider.name
+        ? this.providers.get(failoverName)
+        : undefined;
+
+      if (failover && failover.name !== this.fallback.name) {
+        try {
+          const reviews = normalizeReviews(
+            await failover.generate(context),
+            context,
+            failover.name,
+          );
+          if (isUsableResult(reviews)) {
+            return reviews;
+          }
+        } catch (failoverError) {
+          this.onProviderFailure?.({ provider: failover.name, error: failoverError });
+        }
+      }
+
       return this.fallback.generate(context);
     }
   }

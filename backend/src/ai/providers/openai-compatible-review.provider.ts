@@ -7,6 +7,7 @@ import {
 export interface OpenAiCompatibleProviderOptions {
   name: string; errorLabel: string; apiKey: string; baseUrl: string; model: string;
   timeoutMs?: number; fetchImpl?: typeof fetch; extraBody?: Record<string, unknown>;
+  maxRateLimitRetries?: number;
 }
 
 interface ApiResponse { choices?: Array<{ message?: { content?: string | null } }> }
@@ -64,6 +65,8 @@ export class OpenAiCompatibleReviewProvider implements ReviewProvider {
       { role: "system", content: systemPrompt }, { role: "user", content: JSON.stringify(userPayload) },
     ], response_format: { type: "json_object" }, temperature: 0.8, max_tokens: 1200, ...this.options.extraBody });
     const fetchImpl = this.options.fetchImpl ?? fetch;
+    const maxRateLimitRetries = this.options.maxRateLimitRetries
+      ?? RATE_LIMIT_RETRY_DELAYS_MS.length;
     let response: Response;
     for (let attempt = 0; ; attempt += 1) {
       response = await fetchImpl(`${this.options.baseUrl}/chat/completions`, {
@@ -72,7 +75,7 @@ export class OpenAiCompatibleReviewProvider implements ReviewProvider {
         body: requestBody,
         signal: AbortSignal.timeout(this.options.timeoutMs ?? 12_000),
       });
-      if (response.status !== 429 || attempt >= RATE_LIMIT_RETRY_DELAYS_MS.length) break;
+      if (response.status !== 429 || attempt >= maxRateLimitRetries) break;
       await response.arrayBuffer();
       await wait(rateLimitDelayMs(response, attempt));
     }

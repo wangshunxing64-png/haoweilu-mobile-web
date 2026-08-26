@@ -179,11 +179,12 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
       ["qwen", new QwenProvider()],
     ]),
     fallback,
+    failoverProviders: new Map([["zhipu", "deepseek"]]),
     onProviderFailure: ({ provider, error }) => {
       app.log.warn({
         provider,
         reason: error instanceof Error ? error.message : "unknown provider failure",
-      }, "AI provider failed; local fallback used");
+      }, "AI provider failed");
     },
   });
 
