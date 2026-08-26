@@ -3,20 +3,23 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Music2, Cpu } from 'lucide-react';
 
 interface GeneratingLoadingScreenProps {
-  selectedTags?: string[];
   onComplete: () => void;
   autoTransition?: boolean;
 }
 
-const DEFAULT_SENTIMENTS = [
-  '热情好客',
-  '鲜香醇厚',
-  '分量十足',
-  '地道风味',
-  '环境雅致',
-  '上菜迅速',
-  '食材极鲜',
-  '服务周到',
+const LOADING_KEYWORDS = [
+  '味道不错',
+  '服务好',
+  '性价比高',
+  '分量很足',
+  '食材新鲜',
+  '上菜很快',
+  '环境舒服',
+  '口味正宗',
+  '很下饭',
+  '汤底鲜香',
+  '价格实惠',
+  '值得推荐',
 ];
 
 const AI_THOUGHT_STEPS = [
@@ -27,11 +30,10 @@ const AI_THOUGHT_STEPS = [
 ];
 
 export const GeneratingLoadingScreen: React.FC<GeneratingLoadingScreenProps> = ({
-  selectedTags = [],
   onComplete,
   autoTransition = true,
 }) => {
-  const sentimentWords = selectedTags.length > 0 ? selectedTags : DEFAULT_SENTIMENTS;
+  const sentimentWords = LOADING_KEYWORDS;
   const [currentWordIdx, setCurrentWordIdx] = useState(0);
   const [thoughtStepIdx, setThoughtStepIdx] = useState(0);
   const [progress, setProgress] = useState(0);

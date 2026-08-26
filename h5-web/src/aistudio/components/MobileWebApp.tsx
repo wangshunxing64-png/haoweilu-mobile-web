@@ -427,9 +427,6 @@ export const MobileWebApp: React.FC<MobileWebAppProps> = ({
 
             {activeScreen === 'generating-loading' && (
               <GeneratingLoadingScreen
-                selectedTags={appState.selectedTags
-                  .map((id) => config?.tags.find((tag) => tag.id === id)?.name)
-                  .filter((name): name is string => Boolean(name))}
                 autoTransition={false}
                 onComplete={() => undefined}
               />
