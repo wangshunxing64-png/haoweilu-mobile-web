@@ -112,7 +112,7 @@ test("ReviewGenerator uses local fallback when DeepSeek failover is also unusabl
         styleId: ["daily", "friend", "local"][index],
         styleName: "",
         styleLabel: "",
-        content: marker.repeat(149),
+        content: marker.repeat(99),
       }));
     },
   };
@@ -148,7 +148,7 @@ test("ReviewGenerator falls back when a provider returns fewer than three or dup
   assert.ok(result.every((item) => item.provider === "local-template"));
 });
 
-test("ReviewGenerator falls back when any remote review is shorter than 150 characters", async () => {
+test("ReviewGenerator falls back when any remote review is shorter than 100 characters", async () => {
   const remote: ReviewProvider = {
     name: "deepseek",
     async generate() {
@@ -157,7 +157,7 @@ test("ReviewGenerator falls back when any remote review is shorter than 150 char
         styleId: ["daily", "friend", "local"][index],
         styleName: "",
         styleLabel: "",
-        content: marker.repeat(149),
+        content: marker.repeat(99),
       }));
     },
   };
@@ -295,7 +295,7 @@ test("ReviewGenerator fails over from SiliconFlow to DeepSeek when SiliconFlow t
     ["siliconflow"],
   );
 });
-test("ReviewGenerator fails over to DeepSeek when SiliconFlow returns reviews shorter than 150 characters", async () => {
+test("ReviewGenerator fails over to DeepSeek when SiliconFlow returns reviews shorter than 100 characters", async () => {
   let deepseekCalls = 0;
 
   const siliconflow: ReviewProvider = {
@@ -308,21 +308,21 @@ test("ReviewGenerator fails over to DeepSeek when SiliconFlow returns reviews sh
           styleId: "daily",
           styleName: "",
           styleLabel: "",
-          content: "甲".repeat(149),
+          content: "甲".repeat(99),
         },
         {
           id: "b",
           styleId: "friend",
           styleName: "",
           styleLabel: "",
-          content: "乙".repeat(149),
+          content: "乙".repeat(99),
         },
         {
           id: "c",
           styleId: "local",
           styleName: "",
           styleLabel: "",
-          content: "丙".repeat(149),
+          content: "丙".repeat(99),
         },
       ];
     },

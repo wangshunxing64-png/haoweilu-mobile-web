@@ -109,7 +109,7 @@ test("SiliconFlowProvider calls Qwen3-8B with thinking disabled and shared revie
 
   assert.match(
     systemPrompt,
-    /不得少于\s*150\s*个字符/,
+    /不得少于\s*100\s*个字符/,
   );
 
   assert.match(

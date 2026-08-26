@@ -48,7 +48,7 @@ test("ZhipuProvider calls the official GLM-4.7-Flash endpoint and parses three r
   const systemPrompt = requestBody.messages[0].content;
   assert.match(
   systemPrompt,
-  /不得少于\s*150\s*个字符/,
+  /不得少于\s*100\s*个字符/,
  );
 
 assert.match(

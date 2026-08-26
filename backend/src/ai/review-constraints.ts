@@ -1,5 +1,5 @@
-export const MIN_REVIEW_CHARACTERS = 150;
-export const PREFERRED_MAX_REVIEW_CHARACTERS = 220;
+export const MIN_REVIEW_CHARACTERS = 100;
+export const PREFERRED_MAX_REVIEW_CHARACTERS = 180;
 
 export function countReviewCharacters(content: string): number {
   return Array.from(content.trim()).length;
