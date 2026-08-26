@@ -8,10 +8,29 @@ const prisma = createPrismaClient();
 
 async function main(): Promise<void> {
   const merchant = lijiMerchantSeed;
-  const defaultProvider = process.env.AI_PROVIDER || process.env.DEFAULT_AI_PROVIDER || merchant.ai.provider;
-  const defaultModel = defaultProvider === "deepseek"
-    ? (process.env.DEEPSEEK_MODEL || "deepseek-v4-flash")
-    : merchant.ai.model || null;
+  const defaultProvider =
+  process.env.AI_PROVIDER
+  || process.env.DEFAULT_AI_PROVIDER
+  || merchant.ai.provider;
+
+const defaultModel = (() => {
+  switch (defaultProvider) {
+    case "siliconflow":
+      return process.env.SILICONFLOW_MODEL || "Qwen/Qwen3-8B";
+
+    case "deepseek":
+      return process.env.DEEPSEEK_MODEL || "deepseek-v4-flash";
+
+    case "zhipu":
+      return process.env.ZHIPU_MODEL || "glm-4.7-flash";
+
+    case "local-template":
+      return null;
+
+    default:
+      return merchant.ai.model || null;
+  }
+})();
   const store = merchant.store;
   if (!store) throw new Error("Li Ji seed requires a default store");
 

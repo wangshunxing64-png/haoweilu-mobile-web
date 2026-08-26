@@ -58,47 +58,67 @@ export class ReviewGenerator {
   }
 
   async generate(
-    context: ReviewGenerationContext,
-    preferredProvider: string,
-  ): Promise<GeneratedReview[]> {
-    if (preferredProvider === this.fallback.name || preferredProvider === "local-template") {
-      return this.fallback.generate(context);
-    }
+  context: ReviewGenerationContext,
+  preferredProvider: string,
+): Promise<GeneratedReview[]> {
+  if (preferredProvider === this.fallback.name || preferredProvider === "local-template") {
+    return this.fallback.generate(context);
+  }
 
-    const provider = this.providers.get(preferredProvider);
-    if (!provider) {
-      return this.fallback.generate(context);
-    }
+  const provider = this.providers.get(preferredProvider);
+  if (!provider) {
+    return this.fallback.generate(context);
+  }
 
-    try {
-      const reviews = normalizeReviews(await provider.generate(context), context, provider.name);
-      if (!isUsableResult(reviews)) {
-        return this.fallback.generate(context);
-      }
+  try {
+    const reviews = normalizeReviews(
+      await provider.generate(context),
+      context,
+      provider.name,
+    );
+
+    if (isUsableResult(reviews)) {
       return reviews;
-    } catch (error) {
-      this.onProviderFailure?.({ provider: provider.name, error });
-      const failoverName = this.failoverProviders.get(provider.name);
-      const failover = failoverName && failoverName !== provider.name
+    }
+
+    throw new Error(`${provider.name} returned unusable review results`);
+  } catch (error) {
+    this.onProviderFailure?.({
+      provider: provider.name,
+      error,
+    });
+
+    const failoverName = this.failoverProviders.get(provider.name);
+
+    const failover =
+      failoverName && failoverName !== provider.name
         ? this.providers.get(failoverName)
         : undefined;
 
-      if (failover && failover.name !== this.fallback.name) {
-        try {
-          const reviews = normalizeReviews(
-            await failover.generate(context),
-            context,
-            failover.name,
-          );
-          if (isUsableResult(reviews)) {
-            return reviews;
-          }
-        } catch (failoverError) {
-          this.onProviderFailure?.({ provider: failover.name, error: failoverError });
-        }
-      }
+    if (failover && failover.name !== this.fallback.name) {
+      try {
+        const reviews = normalizeReviews(
+          await failover.generate(context),
+          context,
+          failover.name,
+        );
 
-      return this.fallback.generate(context);
+        if (isUsableResult(reviews)) {
+          return reviews;
+        }
+
+        this.onProviderFailure?.({
+          provider: failover.name,
+          error: new Error(`${failover.name} returned unusable review results`),
+        });
+      } catch (failoverError) {
+        this.onProviderFailure?.({
+          provider: failover.name,
+          error: failoverError,
+        });
+           }
     }
+
+    return this.fallback.generate(context);
   }
-}
+}}

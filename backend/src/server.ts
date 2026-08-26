@@ -39,6 +39,10 @@ const config: HttpAppConfig = {
   zhipuBaseUrl: env.ZHIPU_BASE_URL,
   zhipuModel: env.ZHIPU_MODEL,
   zhipuTimeoutMs: env.ZHIPU_TIMEOUT_MS,
+  siliconflowApiKey: env.SILICONFLOW_API_KEY,
+  siliconflowBaseUrl: env.SILICONFLOW_BASE_URL,
+  siliconflowModel: env.SILICONFLOW_MODEL,
+  siliconflowTimeoutMs: env.SILICONFLOW_TIMEOUT_MS,
   contentBlocklist: env.contentBlocklist,
 };
 

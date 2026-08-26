@@ -22,6 +22,10 @@ const config: HttpAppConfig = {
   zhipuBaseUrl: "https://open.bigmodel.cn/api/paas/v4",
   zhipuModel: "glm-4.7-flash",
   zhipuTimeoutMs: 12000,
+  siliconflowApiKey: "",
+  siliconflowBaseUrl: "https://api.siliconflow.cn/v1",
+  siliconflowModel: "Qwen/Qwen3-8B",
+  siliconflowTimeoutMs: 15000,
   contentBlocklist: [],
 };
 

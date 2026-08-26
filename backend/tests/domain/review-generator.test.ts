@@ -207,3 +207,193 @@ test("ReviewGenerator reports provider failure without exposing the user message
   await generator.generate(context, "deepseek");
   assert.deepEqual(failures, [{ provider: "deepseek", reason: "upstream unavailable" }]);
 });
+test("ReviewGenerator fails over from SiliconFlow to DeepSeek when SiliconFlow throws", async () => {
+  let siliconflowCalls = 0;
+  let deepseekCalls = 0;
+
+  const siliconflow: ReviewProvider = {
+    name: "siliconflow",
+
+    async generate() {
+      siliconflowCalls += 1;
+
+      throw new Error(
+        "SiliconFlow request failed: 429",
+      );
+    },
+  };
+
+  const deepseek: ReviewProvider = {
+    name: "deepseek",
+
+    async generate() {
+      deepseekCalls += 1;
+
+      return [
+        {
+          id: "a",
+          styleId: "daily",
+          styleName: "",
+          styleLabel: "",
+          content: "DeepSeek日常评价".repeat(20),
+        },
+        {
+          id: "b",
+          styleId: "friend",
+          styleName: "",
+          styleLabel: "",
+          content: "DeepSeek朋友评价".repeat(20),
+        },
+        {
+          id: "c",
+          styleId: "local",
+          styleName: "",
+          styleLabel: "",
+          content: "DeepSeek本地评价".repeat(20),
+        },
+      ];
+    },
+  };
+
+  const failures: string[] = [];
+
+  const generator = new ReviewGenerator({
+    providers: new Map([
+      ["siliconflow", siliconflow],
+      ["deepseek", deepseek],
+    ]),
+
+    fallback: new LocalFallbackProvider(),
+
+    failoverProviders: new Map([
+      ["siliconflow", "deepseek"],
+    ]),
+
+    onProviderFailure: ({ provider }) => {
+      failures.push(provider);
+    },
+  });
+
+  const result = await generator.generate(
+    context,
+    "siliconflow",
+  );
+
+  assert.equal(siliconflowCalls, 1);
+  assert.equal(deepseekCalls, 1);
+
+  assert.equal(result.length, 3);
+
+  assert.ok(
+    result.every(
+      (item) => item.provider === "deepseek",
+    ),
+  );
+
+  assert.deepEqual(
+    failures,
+    ["siliconflow"],
+  );
+});
+test("ReviewGenerator fails over to DeepSeek when SiliconFlow returns reviews shorter than 150 characters", async () => {
+  let deepseekCalls = 0;
+
+  const siliconflow: ReviewProvider = {
+    name: "siliconflow",
+
+    async generate() {
+      return [
+        {
+          id: "a",
+          styleId: "daily",
+          styleName: "",
+          styleLabel: "",
+          content: "甲".repeat(149),
+        },
+        {
+          id: "b",
+          styleId: "friend",
+          styleName: "",
+          styleLabel: "",
+          content: "乙".repeat(149),
+        },
+        {
+          id: "c",
+          styleId: "local",
+          styleName: "",
+          styleLabel: "",
+          content: "丙".repeat(149),
+        },
+      ];
+    },
+  };
+
+  const deepseek: ReviewProvider = {
+    name: "deepseek",
+
+    async generate() {
+      deepseekCalls += 1;
+
+      return [
+        {
+          id: "a",
+          styleId: "daily",
+          styleName: "",
+          styleLabel: "",
+          content: "DeepSeek日常评价".repeat(20),
+        },
+        {
+          id: "b",
+          styleId: "friend",
+          styleName: "",
+          styleLabel: "",
+          content: "DeepSeek朋友评价".repeat(20),
+        },
+        {
+          id: "c",
+          styleId: "local",
+          styleName: "",
+          styleLabel: "",
+          content: "DeepSeek本地评价".repeat(20),
+        },
+      ];
+    },
+  };
+
+  const failures: string[] = [];
+
+  const generator = new ReviewGenerator({
+    providers: new Map([
+      ["siliconflow", siliconflow],
+      ["deepseek", deepseek],
+    ]),
+
+    fallback: new LocalFallbackProvider(),
+
+    failoverProviders: new Map([
+      ["siliconflow", "deepseek"],
+    ]),
+
+    onProviderFailure: ({ provider }) => {
+      failures.push(provider);
+    },
+  });
+
+  const result = await generator.generate(
+    context,
+    "siliconflow",
+  );
+
+  assert.equal(deepseekCalls, 1);
+
+  assert.ok(
+    result.every(
+      (item) => item.provider === "deepseek",
+    ),
+  );
+
+  assert.deepEqual(
+    failures,
+    ["siliconflow"],
+  );
+});

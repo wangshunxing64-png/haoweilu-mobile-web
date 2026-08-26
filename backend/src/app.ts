@@ -11,6 +11,7 @@ import { DeepSeekProvider } from "./ai/providers/deepseek.provider.ts";
 import { LocalFallbackProvider } from "./ai/providers/local-fallback.provider.ts";
 import { QwenProvider } from "./ai/providers/qwen.provider.ts";
 import { ZhipuProvider } from "./ai/providers/zhipu.provider.ts";
+import { SiliconFlowProvider } from "./ai/providers/siliconflow.provider.ts";
 import { ReviewGenerator } from "./ai/review-generator.ts";
 import type { ReviewProvider } from "./ai/types.ts";
 import { registerErrorHandler } from "./common/http/error-handler.ts";
@@ -42,6 +43,10 @@ export interface HttpAppConfig {
   zhipuBaseUrl: string;
   zhipuModel: string;
   zhipuTimeoutMs: number;
+  siliconflowApiKey: string;
+  siliconflowBaseUrl: string;
+  siliconflowModel: string;
+  siliconflowTimeoutMs: number;
   contentBlocklist: string[];
 }
 
@@ -164,6 +169,12 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   const fallback = new LocalFallbackProvider();
   const generator = options.reviewGenerator ?? new ReviewGenerator({
     providers: new Map<string, ReviewProvider>([
+        ["siliconflow", new SiliconFlowProvider({
+          apiKey: config.siliconflowApiKey,
+          baseUrl: config.siliconflowBaseUrl,
+          model: config.siliconflowModel,
+          timeoutMs: config.siliconflowTimeoutMs,
+      })],
       ["deepseek", new DeepSeekProvider({
         apiKey: config.deepseekApiKey,
         baseUrl: config.deepseekBaseUrl,
@@ -179,7 +190,10 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
       ["qwen", new QwenProvider()],
     ]),
     fallback,
-    failoverProviders: new Map([["zhipu", "deepseek"]]),
+    failoverProviders: new Map([
+  ["siliconflow", "deepseek"],
+  ["zhipu", "deepseek"],
+]),
     onProviderFailure: ({ provider, error }) => {
       app.log.warn({
         provider,
