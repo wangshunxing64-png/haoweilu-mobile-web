@@ -109,9 +109,9 @@ test("ReviewService uses the merchant-configured AI provider instead of trusting
       async generate() {
         remoteCalls += 1;
         return [
-          { id: "a", styleId: "daily", styleName: "", styleLabel: "", content: "远端一" },
-          { id: "b", styleId: "friend", styleName: "", styleLabel: "", content: "远端二" },
-          { id: "c", styleId: "local", styleName: "", styleLabel: "", content: "远端三" },
+          { id: "a", styleId: "daily", styleName: "", styleLabel: "", content: "远端一".repeat(50) },
+          { id: "b", styleId: "friend", styleName: "", styleLabel: "", content: "远端二".repeat(50) },
+          { id: "c", styleId: "local", styleName: "", styleLabel: "", content: "远端三".repeat(50) },
         ];
       },
     }]]),

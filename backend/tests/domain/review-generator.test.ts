@@ -22,9 +22,9 @@ test("ReviewGenerator accepts a valid remote provider result and normalizes styl
     name: "deepseek",
     async generate() {
       return [
-        { id: "a", styleId: "daily", styleName: "", styleLabel: "", content: "远端日常评价" },
-        { id: "b", styleId: "friend", styleName: "", styleLabel: "", content: "远端朋友评价" },
-        { id: "c", styleId: "local", styleName: "", styleLabel: "", content: "远端本地评价" },
+        { id: "a", styleId: "daily", styleName: "", styleLabel: "", content: "远端日常评价".repeat(25) },
+        { id: "b", styleId: "friend", styleName: "", styleLabel: "", content: "远端朋友评价".repeat(25) },
+        { id: "c", styleId: "local", styleName: "", styleLabel: "", content: "远端本地评价".repeat(25) },
       ];
     },
   };
@@ -75,6 +75,30 @@ test("ReviewGenerator falls back when a provider returns fewer than three or dup
   });
 
   const result = await generator.generate(context, "deepseek");
+  assert.equal(result.length, 3);
+  assert.ok(result.every((item) => item.provider === "local-template"));
+});
+
+test("ReviewGenerator falls back when any remote review is shorter than 150 characters", async () => {
+  const remote: ReviewProvider = {
+    name: "deepseek",
+    async generate() {
+      return ["甲", "乙", "丙"].map((marker, index) => ({
+        id: marker,
+        styleId: ["daily", "friend", "local"][index],
+        styleName: "",
+        styleLabel: "",
+        content: marker.repeat(149),
+      }));
+    },
+  };
+  const generator = new ReviewGenerator({
+    providers: new Map([[remote.name, remote]]),
+    fallback: new LocalFallbackProvider(),
+  });
+
+  const result = await generator.generate(context, "deepseek");
+
   assert.equal(result.length, 3);
   assert.ok(result.every((item) => item.provider === "local-template"));
 });

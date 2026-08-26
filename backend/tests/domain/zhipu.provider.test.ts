@@ -41,6 +41,7 @@ test("ZhipuProvider calls the official GLM-4.7-Flash endpoint and parses three r
   assert.equal(requestBody.model, "glm-4.7-flash");
   assert.deepEqual(requestBody.response_format, { type: "json_object" });
   assert.deepEqual(requestBody.thinking, { type: "disabled" });
+  assert.match(requestBody.messages[0].content, /每条评价(?:不少于|至少)\s*150\s*个字符/);
   assert.equal(reviews.length, 3);
   assert.ok(reviews.every((review) => review.provider === "zhipu"));
 });

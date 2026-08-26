@@ -3,6 +3,7 @@ import type {
   ReviewGenerationContext,
   ReviewProvider,
 } from "./types.ts";
+import { meetsMinimumReviewLength } from "./review-constraints.ts";
 
 interface ProviderFailureEvent {
   provider: string;
@@ -17,7 +18,7 @@ interface ReviewGeneratorOptions {
 
 function isUsableResult(reviews: GeneratedReview[]): boolean {
   if (reviews.length !== 3) return false;
-  if (reviews.some((review) => !review.content?.trim())) return false;
+  if (reviews.some((review) => !meetsMinimumReviewLength(review.content ?? ""))) return false;
   return new Set(reviews.map((review) => review.content.trim())).size === 3;
 }
 

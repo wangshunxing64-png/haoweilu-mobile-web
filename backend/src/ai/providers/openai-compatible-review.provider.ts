@@ -1,4 +1,5 @@
 import type { GeneratedReview, ReviewGenerationContext, ReviewProvider } from "../types.ts";
+import { MIN_REVIEW_CHARACTERS } from "../review-constraints.ts";
 
 export interface OpenAiCompatibleProviderOptions {
   name: string; errorLabel: string; apiKey: string; baseUrl: string; model: string;
@@ -25,6 +26,7 @@ export class OpenAiCompatibleReviewProvider implements ReviewProvider {
       "只能整理顾客已提供的真实体验，不得虚构菜品、服务、环境、价格、排队、人物或消费事实。",
       "输出必须是 JSON 对象，格式为 {\"reviews\":[{\"styleId\":\"...\",\"content\":\"...\"}]}。",
       "必须恰好输出 3 条评价，分别对应给定的三个 styleId，表达明显不同但事实一致。",
+      `每条评价不少于 ${MIN_REVIEW_CHARACTERS} 个字符，内容完整自然，不得用重复句子凑字数。`,
       "保留顾客补充原话的核心语义，不夸大，不诱导五星，不声称奖励或利益交换。",
     ].join("\n");
     const userPayload = { merchantName: context.merchant.name, dishes: context.input.dishes,

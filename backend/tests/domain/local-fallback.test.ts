@@ -47,4 +47,5 @@ test("LocalFallbackProvider mirrors the miniapp templates and returns exactly th
   assert.ok(reviews.every((review) => review.content.includes("骨汤烫菜、酸菜蹄膀")));
   assert.ok(reviews.every((review) => review.content.includes("汤底鲜香、服务热情")));
   assert.ok(reviews.every((review) => review.content.includes("朋友推荐来的，汤底很香。")));
+  assert.ok(reviews.every((review) => Array.from(review.content.trim()).length >= 150));
 });
